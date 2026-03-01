@@ -6,8 +6,8 @@ interface SkillsSectionProps {
 
 export default function SkillsSection({ skills }: SkillsSectionProps) {
     return (
-        <section id="skills" className="relative py-24 px-6">
-            <div className="max-w-4xl mx-auto">
+        <section id="skills" className="relative py-24 px-6 flex justify-center">
+            <div className="w-full max-w-4xl">
                 <div className="text-center mb-16">
                     <span className="text-xs uppercase tracking-[0.3em] text-blue-primary font-semibold mb-4 block">
                         Expertise

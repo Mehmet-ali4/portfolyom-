@@ -91,8 +91,8 @@ interface ProjectsSectionProps {
 
 export default function ProjectsSection({ projects }: ProjectsSectionProps) {
     return (
-        <section id="projects" className="relative py-24 px-6">
-            <div className="max-w-7xl mx-auto">
+        <section id="projects" className="relative py-24 px-6 flex justify-center">
+            <div className="w-full max-w-7xl">
                 {/* Section header */}
                 <div className="text-center mb-16">
                     <span className="text-xs uppercase tracking-[0.3em] text-red-primary font-semibold mb-4 block">

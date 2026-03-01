@@ -203,11 +203,11 @@ export interface Profile {
 }
 
 const defaultProfile: Profile = {
-  name: "Feynman Dev",
-  initials: "FD",
+  name: "Mehmet Ali KIRAÇÇAKALI",
+  initials: "M-K",
   title: "Full Stack Developer & Open Source Enthusiast",
   bio: "Passionate developer crafting elegant solutions to complex problems. I specialize in building high-performance web applications with modern technologies. When I'm not coding, I'm contributing to open source projects and exploring the latest in AI and distributed systems.",
-  email: "hello@feynman.dev",
+  email: "mehmet5657ali@gmail.com",
   githubUrl: "https://github.com",
   linkedinUrl: "https://linkedin.com",
   skills: [

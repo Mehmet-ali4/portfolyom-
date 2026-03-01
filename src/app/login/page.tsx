@@ -98,10 +98,6 @@ export default function LoginPage() {
                         </button>
                     </form>
                 </div>
-
-                <p className="text-center text-gray-600 text-xs mt-6">
-                    Default: admin / admin123
-                </p>
             </div>
         </div>
     );
