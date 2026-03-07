@@ -1,6 +1,35 @@
-import { kv } from "@vercel/kv";
+import { createClient } from "@supabase/supabase-js";
 
-// ========== Messages ==========
+const supabaseUrl = process.env.SUPABASE_URL || "https://xsfmtjfjqbqcucvxxwxh.supabase.co";
+const supabaseKey = process.env.SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Helper functions to act as a Key-Value store on Supabase
+async function getKV<T>(key: string, defaultValue: T): Promise<T> {
+  if (!supabaseKey) return defaultValue;
+  try {
+    const { data, error } = await supabase
+      .from("veri_deposu")
+      .select("veri")
+      .eq("isim", key)
+      .single();
+
+    if (error || !data) return defaultValue;
+    return data.veri as T;
+  } catch (err) {
+    console.error(`Supabase GET Error [${key}]:`, err);
+    return defaultValue;
+  }
+}
+
+async function setKV<T>(key: string, value: T): Promise<void> {
+  if (!supabaseKey) return;
+  try {
+    await supabase.from("veri_deposu").upsert({ isim: key, veri: value });
+  } catch (err) {
+    console.error(`Supabase SET Error [${key}]:`, err);
+  }
+} // ========== Messages ==========
 
 export interface Message {
   id: string;
@@ -13,13 +42,7 @@ export interface Message {
 }
 
 export async function getMessages(): Promise<Message[]> {
-  try {
-    const msgs = await kv.get<Message[]>("messages");
-    return msgs || [];
-  } catch (error) {
-    console.error("KV Error:", error);
-    return [];
-  }
+  return await getKV<Message[]>("messages", []);
 }
 
 export async function addMessage(msg: Omit<Message, "id" | "createdAt" | "read">): Promise<Message> {
@@ -31,7 +54,7 @@ export async function addMessage(msg: Omit<Message, "id" | "createdAt" | "read">
     read: false,
   };
   messages.unshift(newMsg);
-  await kv.set("messages", messages);
+  await setKV("messages", messages);
   return newMsg;
 }
 
@@ -40,14 +63,14 @@ export async function markMessageRead(id: string): Promise<void> {
   const msg = messages.find((m) => m.id === id);
   if (msg) {
     msg.read = true;
-    await kv.set("messages", messages);
+    await setKV("messages", messages);
   }
 }
 
 export async function deleteMessage(id: string): Promise<void> {
   let messages = await getMessages();
   messages = messages.filter((m) => m.id !== id);
-  await kv.set("messages", messages);
+  await setKV("messages", messages);
 }
 
 // ========== Projects ==========
@@ -138,17 +161,12 @@ const defaultProjects: Project[] = [
 ];
 
 export async function getProjects(): Promise<Project[]> {
-  try {
-    const projs = await kv.get<Project[]>("projects");
-    if (!projs) {
-      await kv.set("projects", defaultProjects);
-      return defaultProjects;
-    }
-    return projs;
-  } catch (error) {
-    console.error("KV Error:", error);
+  const projs = await getKV<Project[] | null>("projects", null);
+  if (!projs || projs.length === 0) {
+    await setKV("projects", defaultProjects);
     return defaultProjects;
   }
+  return projs;
 }
 
 export async function addProject(proj: Omit<Project, "id" | "createdAt">): Promise<Project> {
@@ -159,7 +177,7 @@ export async function addProject(proj: Omit<Project, "id" | "createdAt">): Promi
     createdAt: new Date().toISOString(),
   };
   projects.unshift(newProj);
-  await kv.set("projects", projects);
+  await setKV("projects", projects);
   return newProj;
 }
 
@@ -168,14 +186,14 @@ export async function updateProject(id: string, updates: Partial<Project>): Prom
   const idx = projects.findIndex((p) => p.id === id);
   if (idx !== -1) {
     projects[idx] = { ...projects[idx], ...updates };
-    await kv.set("projects", projects);
+    await setKV("projects", projects);
   }
 }
 
 export async function deleteProject(id: string): Promise<void> {
   let projects = await getProjects();
   projects = projects.filter((p) => p.id !== id);
-  await kv.set("projects", projects);
+  await setKV("projects", projects);
 }
 
 // ========== Profile ==========
@@ -218,22 +236,17 @@ const defaultProfile: Profile = {
 };
 
 export async function getProfile(): Promise<Profile> {
-  try {
-    const prof = await kv.get<Profile>("profile");
-    if (!prof) {
-      await kv.set("profile", defaultProfile);
-      return defaultProfile;
-    }
-    return prof;
-  } catch (error) {
-    console.error("KV Error:", error);
+  const prof = await getKV<Profile | null>("profile", null);
+  if (!prof) {
+    await setKV("profile", defaultProfile);
     return defaultProfile;
   }
+  return prof;
 }
 
 export async function updateProfile(updates: Partial<Profile>): Promise<Profile> {
   const profile = await getProfile();
   const updated = { ...profile, ...updates };
-  await kv.set("profile", updated);
+  await setKV("profile", updated);
   return updated;
 }
