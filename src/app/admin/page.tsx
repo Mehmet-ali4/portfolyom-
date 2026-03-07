@@ -19,6 +19,7 @@ import {
     Star,
     GitFork,
     ChevronRight,
+    Edit3,
 } from "lucide-react";
 import {
     logoutAction,
@@ -26,6 +27,7 @@ import {
     deleteMessageAction,
     markMessageReadAction,
     addProjectAction,
+    updateProjectAction,
     deleteProjectAction,
     updateProfileAction,
     getProfileAction,
@@ -42,6 +44,7 @@ export default function AdminPage() {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
     const [showAddProject, setShowAddProject] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -102,6 +105,18 @@ export default function AdminPage() {
             showToast("Project added!");
         } else {
             showToast(result.error || "Failed to add project", "error");
+        }
+    };
+
+    const handleUpdateProject = async (formData: FormData) => {
+        if (!editingProject) return;
+        const result = await updateProjectAction(editingProject.id, formData);
+        if (result.success) {
+            setEditingProject(null);
+            await loadData();
+            showToast("Project updated!");
+        } else {
+            showToast(result.error || "Failed to update project", "error");
         }
     };
 
@@ -336,6 +351,12 @@ export default function AdminPage() {
                                                     <ExternalLink size={14} />
                                                 </a>
                                                 <button
+                                                    onClick={() => setEditingProject(project)}
+                                                    className="social-btn !w-8 !h-8 hover:!text-blue-400 hover:!border-blue-400/30"
+                                                >
+                                                    <Edit3 size={14} />
+                                                </button>
+                                                <button
                                                     onClick={() => handleDeleteProject(project.id)}
                                                     className="social-btn !w-8 !h-8 hover:!text-red-400 hover:!border-red-400/30"
                                                 >
@@ -407,6 +428,74 @@ export default function AdminPage() {
                                                 </div>
                                                 <button type="submit" className="btn-primary w-full">
                                                     Add Project
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Edit Project Modal */}
+                                {editingProject && (
+                                    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                                        <div className="glass-card p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto neon-border-blue">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <h2 className="text-lg font-bold">Edit Project</h2>
+                                                <button onClick={() => setEditingProject(null)} className="text-gray-500 hover:text-white">
+                                                    <X size={20} />
+                                                </button>
+                                            </div>
+                                            <form action={handleUpdateProject} className="space-y-4">
+                                                <div>
+                                                    <label className="text-xs font-medium text-gray-400 mb-1 block uppercase tracking-wider">Title</label>
+                                                    <input name="title" defaultValue={editingProject.title} required className="input-dark" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-medium text-gray-400 mb-1 block uppercase tracking-wider">Description</label>
+                                                    <textarea name="description" defaultValue={editingProject.description} required className="input-dark" rows={3} />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs font-medium text-gray-400 mb-1 block uppercase tracking-wider">Technologies (comma-separated)</label>
+                                                    <input name="tech" defaultValue={editingProject.tech.join(", ")} className="input-dark" />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="text-xs font-medium text-gray-400 mb-1 block uppercase tracking-wider">GitHub URL</label>
+                                                        <input name="githubUrl" defaultValue={editingProject.githubUrl} required className="input-dark" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs font-medium text-gray-400 mb-1 block uppercase tracking-wider">Live URL (optional)</label>
+                                                        <input name="liveUrl" defaultValue={editingProject.liveUrl || ""} className="input-dark" />
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="text-xs font-medium text-gray-400 mb-1 block uppercase tracking-wider">Stars</label>
+                                                        <input name="stars" defaultValue={editingProject.stars || ""} type="number" className="input-dark" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs font-medium text-gray-400 mb-1 block uppercase tracking-wider">Forks</label>
+                                                        <input name="forks" defaultValue={editingProject.forks || ""} type="number" className="input-dark" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input type="hidden" name="featured" value={editingProject.featured ? "true" : "false"} />
+                                                    <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-400">
+                                                        <input
+                                                            type="checkbox"
+                                                            defaultChecked={editingProject.featured}
+                                                            onChange={(e) => {
+                                                                const hidden = e.target.parentElement?.parentElement?.querySelector(
+                                                                    'input[name="featured"][type="hidden"]'
+                                                                ) as HTMLInputElement;
+                                                                if (hidden) hidden.value = e.target.checked ? "true" : "false";
+                                                            }}
+                                                            className="w-4 h-4 rounded border-gray-600"
+                                                        />
+                                                        Featured project
+                                                    </label>
+                                                </div>
+                                                <button type="submit" className="btn-primary w-full">
+                                                    Save Changes
                                                 </button>
                                             </form>
                                         </div>
