@@ -30,7 +30,7 @@ export async function submitContactForm(formData: FormData) {
     }
 
     try {
-        addMessage({ name, email, subject, message });
+        await addMessage({ name, email, subject, message });
         revalidatePath("/admin");
         return { success: true, message: "Message sent successfully!" };
     } catch {
@@ -67,13 +67,13 @@ export async function logoutAction() {
 export async function getMessagesAction() {
     const auth = await isAuthenticated();
     if (!auth) return [];
-    return getMessages();
+    return await getMessages();
 }
 
 export async function deleteMessageAction(id: string) {
     const auth = await isAuthenticated();
     if (!auth) return { success: false, error: "Unauthorized" };
-    deleteMessage(id);
+    await deleteMessage(id);
     revalidatePath("/admin");
     return { success: true };
 }
@@ -81,7 +81,7 @@ export async function deleteMessageAction(id: string) {
 export async function markMessageReadAction(id: string) {
     const auth = await isAuthenticated();
     if (!auth) return { success: false, error: "Unauthorized" };
-    markMessageRead(id);
+    await markMessageRead(id);
     revalidatePath("/admin");
     return { success: true };
 }
@@ -109,7 +109,7 @@ export async function addProjectAction(formData: FormData) {
     const stars = starsStr ? parseInt(starsStr) : undefined;
     const forks = forksStr ? parseInt(forksStr) : undefined;
 
-    addProject({ title, description, tech, githubUrl, liveUrl, stars, forks, featured });
+    await addProject({ title, description, tech, githubUrl, liveUrl, stars, forks, featured });
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true, message: "Project added successfully!" };
@@ -132,7 +132,7 @@ export async function updateProjectAction(id: string, formData: FormData) {
     const stars = starsStr ? parseInt(starsStr) : undefined;
     const forks = forksStr ? parseInt(forksStr) : undefined;
 
-    updateProject(id, { title, description, tech, githubUrl, liveUrl, stars, forks, featured });
+    await updateProject(id, { title, description, tech, githubUrl, liveUrl, stars, forks, featured });
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true, message: "Project updated successfully!" };
@@ -141,7 +141,7 @@ export async function updateProjectAction(id: string, formData: FormData) {
 export async function deleteProjectAction(id: string) {
     const auth = await isAuthenticated();
     if (!auth) return { success: false, error: "Unauthorized" };
-    deleteProject(id);
+    await deleteProject(id);
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
@@ -150,7 +150,7 @@ export async function deleteProjectAction(id: string) {
 // ========== Admin - Profile ==========
 
 export async function getProfileAction() {
-    return getProfile();
+    return await getProfile();
 }
 
 export async function updateProfileAction(formData: FormData) {
@@ -175,7 +175,7 @@ export async function updateProfileAction(formData: FormData) {
 
     const skills = skillsStr ? skillsStr.split(",").map((s) => s.trim()).filter(Boolean) : undefined;
 
-    updateProfile({
+    await updateProfile({
         ...(name && { name, initials }),
         ...(title && { title }),
         ...(bio && { bio }),

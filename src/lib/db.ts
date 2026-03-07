@@ -1,32 +1,4 @@
-import fs from "fs";
-import path from "path";
-
-const isProd = process.env.NODE_ENV === "production";
-const DATA_DIR = isProd ? path.join("/tmp", "data") : path.join(process.cwd(), "data");
-const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
-const PROJECTS_FILE = path.join(DATA_DIR, "projects.json");
-const PROFILE_FILE = path.join(DATA_DIR, "profile.json");
-
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-}
-
-function readJSON<T>(filePath: string, defaultValue: T): T {
-  ensureDataDir();
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(defaultValue, null, 2));
-    return defaultValue;
-  }
-  const raw = fs.readFileSync(filePath, "utf-8");
-  return JSON.parse(raw) as T;
-}
-
-function writeJSON<T>(filePath: string, data: T) {
-  ensureDataDir();
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
+import { kv } from "@vercel/kv";
 
 // ========== Messages ==========
 
@@ -40,12 +12,13 @@ export interface Message {
   read: boolean;
 }
 
-export function getMessages(): Message[] {
-  return readJSON<Message[]>(MESSAGES_FILE, []);
+export async function getMessages(): Promise<Message[]> {
+  const msgs = await kv.get<Message[]>("messages");
+  return msgs || [];
 }
 
-export function addMessage(msg: Omit<Message, "id" | "createdAt" | "read">): Message {
-  const messages = getMessages();
+export async function addMessage(msg: Omit<Message, "id" | "createdAt" | "read">): Promise<Message> {
+  const messages = await getMessages();
   const newMsg: Message = {
     ...msg,
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
@@ -53,23 +26,23 @@ export function addMessage(msg: Omit<Message, "id" | "createdAt" | "read">): Mes
     read: false,
   };
   messages.unshift(newMsg);
-  writeJSON(MESSAGES_FILE, messages);
+  await kv.set("messages", messages);
   return newMsg;
 }
 
-export function markMessageRead(id: string) {
-  const messages = getMessages();
+export async function markMessageRead(id: string): Promise<void> {
+  const messages = await getMessages();
   const msg = messages.find((m) => m.id === id);
   if (msg) {
     msg.read = true;
-    writeJSON(MESSAGES_FILE, messages);
+    await kv.set("messages", messages);
   }
 }
 
-export function deleteMessage(id: string) {
-  let messages = getMessages();
+export async function deleteMessage(id: string): Promise<void> {
+  let messages = await getMessages();
   messages = messages.filter((m) => m.id !== id);
-  writeJSON(MESSAGES_FILE, messages);
+  await kv.set("messages", messages);
 }
 
 // ========== Projects ==========
@@ -159,35 +132,40 @@ const defaultProjects: Project[] = [
   },
 ];
 
-export function getProjects(): Project[] {
-  return readJSON<Project[]>(PROJECTS_FILE, defaultProjects);
+export async function getProjects(): Promise<Project[]> {
+  const projs = await kv.get<Project[]>("projects");
+  if (!projs) {
+    await kv.set("projects", defaultProjects);
+    return defaultProjects;
+  }
+  return projs;
 }
 
-export function addProject(proj: Omit<Project, "id" | "createdAt">): Project {
-  const projects = getProjects();
+export async function addProject(proj: Omit<Project, "id" | "createdAt">): Promise<Project> {
+  const projects = await getProjects();
   const newProj: Project = {
     ...proj,
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     createdAt: new Date().toISOString(),
   };
   projects.unshift(newProj);
-  writeJSON(PROJECTS_FILE, projects);
+  await kv.set("projects", projects);
   return newProj;
 }
 
-export function updateProject(id: string, updates: Partial<Project>) {
-  const projects = getProjects();
+export async function updateProject(id: string, updates: Partial<Project>): Promise<void> {
+  const projects = await getProjects();
   const idx = projects.findIndex((p) => p.id === id);
   if (idx !== -1) {
     projects[idx] = { ...projects[idx], ...updates };
-    writeJSON(PROJECTS_FILE, projects);
+    await kv.set("projects", projects);
   }
 }
 
-export function deleteProject(id: string) {
-  let projects = getProjects();
+export async function deleteProject(id: string): Promise<void> {
+  let projects = await getProjects();
   projects = projects.filter((p) => p.id !== id);
-  writeJSON(PROJECTS_FILE, projects);
+  await kv.set("projects", projects);
 }
 
 // ========== Profile ==========
@@ -229,13 +207,18 @@ const defaultProfile: Profile = {
   ],
 };
 
-export function getProfile(): Profile {
-  return readJSON<Profile>(PROFILE_FILE, defaultProfile);
+export async function getProfile(): Promise<Profile> {
+  const prof = await kv.get<Profile>("profile");
+  if (!prof) {
+    await kv.set("profile", defaultProfile);
+    return defaultProfile;
+  }
+  return prof;
 }
 
-export function updateProfile(updates: Partial<Profile>) {
-  const profile = getProfile();
+export async function updateProfile(updates: Partial<Profile>): Promise<Profile> {
+  const profile = await getProfile();
   const updated = { ...profile, ...updates };
-  writeJSON(PROFILE_FILE, updated);
+  await kv.set("profile", updated);
   return updated;
 }
