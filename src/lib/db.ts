@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const isProd = process.env.NODE_ENV === "production";
+const DATA_DIR = isProd ? path.join("/tmp", "data") : path.join(process.cwd(), "data");
 const MESSAGES_FILE = path.join(DATA_DIR, "messages.json");
 const PROJECTS_FILE = path.join(DATA_DIR, "projects.json");
 const PROFILE_FILE = path.join(DATA_DIR, "profile.json");
