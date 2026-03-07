@@ -13,8 +13,13 @@ export interface Message {
 }
 
 export async function getMessages(): Promise<Message[]> {
-  const msgs = await kv.get<Message[]>("messages");
-  return msgs || [];
+  try {
+    const msgs = await kv.get<Message[]>("messages");
+    return msgs || [];
+  } catch (error) {
+    console.error("KV Error:", error);
+    return [];
+  }
 }
 
 export async function addMessage(msg: Omit<Message, "id" | "createdAt" | "read">): Promise<Message> {
@@ -133,12 +138,17 @@ const defaultProjects: Project[] = [
 ];
 
 export async function getProjects(): Promise<Project[]> {
-  const projs = await kv.get<Project[]>("projects");
-  if (!projs) {
-    await kv.set("projects", defaultProjects);
+  try {
+    const projs = await kv.get<Project[]>("projects");
+    if (!projs) {
+      await kv.set("projects", defaultProjects);
+      return defaultProjects;
+    }
+    return projs;
+  } catch (error) {
+    console.error("KV Error:", error);
     return defaultProjects;
   }
-  return projs;
 }
 
 export async function addProject(proj: Omit<Project, "id" | "createdAt">): Promise<Project> {
@@ -208,12 +218,17 @@ const defaultProfile: Profile = {
 };
 
 export async function getProfile(): Promise<Profile> {
-  const prof = await kv.get<Profile>("profile");
-  if (!prof) {
-    await kv.set("profile", defaultProfile);
+  try {
+    const prof = await kv.get<Profile>("profile");
+    if (!prof) {
+      await kv.set("profile", defaultProfile);
+      return defaultProfile;
+    }
+    return prof;
+  } catch (error) {
+    console.error("KV Error:", error);
     return defaultProfile;
   }
-  return prof;
 }
 
 export async function updateProfile(updates: Partial<Profile>): Promise<Profile> {
