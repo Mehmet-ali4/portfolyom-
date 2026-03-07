@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL || "https://xsfmtjfjqbqcucvxxwxh.supabase.co";
-const supabaseKey = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZm10amZqcWJxY3Vjdnh4d3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEzOTUwNzMsImV4cCI6MjA1Njk3MTA3M30.PENGFjdbnVhXwitIATNV_A_y3dHBo2-oXw-ZzU4_uC0";
+const supabaseKey = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZm10amZqcWJxY3Vjdnh4d3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NzYxODksImV4cCI6MjA4ODQ1MjE4OX0.uu9e4QebYhE9z-zDml31CH36IcfxApjbi2E6tEMjS2g";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Helper functions to act as a Key-Value store on Supabase
