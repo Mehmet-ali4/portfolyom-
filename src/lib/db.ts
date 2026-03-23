@@ -2,7 +2,14 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL || "https://xsfmtjfjqbqcucvxxwxh.supabase.co";
 const supabaseKey = process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzZm10amZqcWJxY3Vjdnh4d3hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NzYxODksImV4cCI6MjA4ODQ1MjE4OX0.uu9e4QebYhE9z-zDml31CH36IcfxApjbi2E6tEMjS2g";
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: { persistSession: false },
+  global: {
+    fetch: (url, options) => {
+      return fetch(url, { ...options, cache: "no-store" });
+    },
+  },
+});
 
 // Helper functions to act as a Key-Value store on Supabase
 async function getKV<T>(key: string, defaultValue: T): Promise<T> {
