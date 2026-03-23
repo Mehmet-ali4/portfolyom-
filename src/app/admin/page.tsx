@@ -31,6 +31,7 @@ import {
     deleteProjectAction,
     updateProfileAction,
     getProfileAction,
+    getProjectsAction,
 } from "@/app/actions";
 import { getProjects as getProjectsFromDB } from "@/lib/db";
 import type { Message, Project, Profile } from "@/lib/db";
@@ -56,18 +57,14 @@ export default function AdminPage() {
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const [msgs, prof] = await Promise.all([
+            const [msgs, prof, projs] = await Promise.all([
                 getMessagesAction(),
                 getProfileAction(),
+                getProjectsAction(),
             ]);
             setMessages(msgs);
             setProfile(prof);
-            // Fetch projects via API call from client side
-            const res = await fetch("/api/projects");
-            if (res.ok) {
-                const projData = await res.json();
-                setProjects(projData);
-            }
+            setProjects(projs);
         } catch (err) {
             console.error("Failed to load data", err);
         }

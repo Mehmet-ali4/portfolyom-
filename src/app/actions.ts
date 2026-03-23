@@ -2,6 +2,7 @@
 
 import { addMessage, getMessages, deleteMessage, markMessageRead } from "@/lib/db";
 import {
+    getProjects,
     addProject,
     updateProject,
     deleteProject,
@@ -151,6 +152,10 @@ export async function deleteProjectAction(id: string) {
 
 export async function getProfileAction() {
     return await getProfile();
+}
+
+export async function getProjectsAction() {
+    return await getProjects();
 }
 
 export async function updateProfileAction(formData: FormData) {
