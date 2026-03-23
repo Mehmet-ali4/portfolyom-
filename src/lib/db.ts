@@ -162,7 +162,7 @@ const defaultProjects: Project[] = [
 
 export async function getProjects(): Promise<Project[]> {
   const projs = await getKV<Project[] | null>("projects", null);
-  if (!projs || projs.length === 0) {
+  if (projs === null) {
     await setKV("projects", defaultProjects);
     return defaultProjects;
   }
